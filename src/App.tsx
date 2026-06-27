@@ -1,23 +1,19 @@
-import { useMemo, useState } from "react";
-import type { ModuleId, PreferredTool } from "./types";
+import { useState } from "react";
+import type { ModuleId } from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { StatusBar } from "./components/StatusBar";
 import { ProjectTree } from "./modules/ProjectTree";
 import { AILauncher } from "./modules/AILauncher";
 import { BackupGuardian } from "./modules/BackupGuardian";
+import { useAppStore } from "./store/appStore";
+import { useBackupMonitor } from "./hooks/useBackupMonitor";
 
 function App() {
   const [activeModule, setActiveModule] = useState<ModuleId>("project-tree");
-  const [activeTool] = useState<PreferredTool | null>(null);
+  const { activeTool, backupHealth, backupSummary } = useAppStore();
 
-  const backupStatus = useMemo(
-    () => ({
-      health: "ok" as const,
-      summary: "all synced",
-    }),
-    [],
-  );
+  useBackupMonitor();
 
   function renderModule() {
     switch (activeModule) {
@@ -45,8 +41,8 @@ function App() {
       <div className="app-statusbar">
         <StatusBar
           activeTool={activeTool}
-          backupHealth={backupStatus.health}
-          backupSummary={backupStatus.summary}
+          backupHealth={backupHealth}
+          backupSummary={backupSummary}
         />
       </div>
     </div>

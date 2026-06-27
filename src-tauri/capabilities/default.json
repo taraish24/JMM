@@ -11,6 +11,47 @@
     "sql:allow-load",
     "sql:allow-execute",
     "sql:allow-select",
-    "sql:allow-close"
+    "sql:allow-close",
+    "notification:default",
+    "fs:allow-read-text-file",
+    "fs:allow-exists",
+    "fs:allow-read-dir",
+    "fs:allow-stat",
+    "fs:allow-lstat",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$HOME/**" },
+        { "path": "$HOME/**/.git" },
+        { "path": "$HOME/**/.git/**" },
+        { "path": "/home/**" },
+        { "path": "/home/**/.git" },
+        { "path": "/home/**/.git/**" },
+        { "path": "/media/**" },
+        { "path": "/mnt/**" },
+        { "path": "/opt/**" },
+        { "path": "/srv/**" }
+      ]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "launch-cursor",
+          "cmd": "cursor",
+          "args": true
+        },
+        {
+          "name": "launch-claude",
+          "cmd": "claude",
+          "args": true
+        },
+        {
+          "name": "open-terminal",
+          "cmd": "konsole",
+          "args": true
+        }
+      ]
+    }
   ]
 }

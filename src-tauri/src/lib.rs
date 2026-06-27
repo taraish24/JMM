@@ -49,6 +49,11 @@ fn get_system_uptime() -> String {
 }
 
 #[tauri::command]
+fn path_exists(path: String) -> bool {
+    std::path::Path::new(&path).exists()
+}
+
+#[tauri::command]
 fn get_git_last_commit_date(path: String) -> Option<String> {
     let output = std::process::Command::new("git")
         .args(["-C", &path, "log", "-1", "--format=%ci"])
@@ -87,6 +92,9 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
@@ -95,6 +103,7 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             get_system_uptime,
+            path_exists,
             get_git_last_commit_date
         ])
         .run(tauri::generate_context!())

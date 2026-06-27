@@ -6,11 +6,6 @@ interface StatusBarProps {
   backupSummary: string;
 }
 
-const TOOL_LABELS: Record<PreferredTool, string> = {
-  cursor: "Cursor",
-  claude: "Claude Code",
-};
-
 export function StatusBar({
   activeTool,
   backupHealth,
@@ -28,7 +23,7 @@ export function StatusBar({
       <div className="statusbar-section">
         <span className="statusbar-label">tool</span>
         <span className="statusbar-value">
-          {activeTool ? TOOL_LABELS[activeTool] : "none"}
+          {activeTool ?? "none"}
         </span>
       </div>
 

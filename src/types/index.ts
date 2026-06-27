@@ -4,6 +4,10 @@ export type ProjectStatus = "active" | "shipped" | "paused";
 
 export type PreferredTool = "cursor" | "claude";
 
+export type BackupStatus = "synced" | "stale" | "critical" | "unknown";
+
+export type BackupHealth = "ok" | "warning" | "critical";
+
 export interface Project {
   id: number;
   name: string;
@@ -37,5 +41,15 @@ export interface NewProject {
 
 export interface AppContext {
   activeTool: PreferredTool | null;
-  backupHealth: "ok" | "warning" | "critical";
+  backupHealth: BackupHealth;
+}
+
+export interface ProjectBackupInfo {
+  projectId: number;
+  projectName: string;
+  projectPath: string;
+  branch: string | null;
+  commitMessage: string | null;
+  daysSinceCommit: number | null;
+  status: BackupStatus;
 }
