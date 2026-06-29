@@ -53,6 +53,67 @@ fn path_exists(path: String) -> bool {
     std::path::Path::new(&path).exists()
 }
 
+const PRE_COMMIT_HOOK: &str = r#"#!/bin/sh
+# JMM pre-commit hook — refreshes STATUS.md metadata before each commit
+
+STATUS_FILE="STATUS.md"
+[ -f "$STATUS_FILE" ] || exit 0
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+TODAY=$(date -I 2>/dev/null || date +%Y-%m-%d)
+
+if grep -q '^\*\*Updated:\*\*' "$STATUS_FILE"; then
+  sed -i "s/^\*\*Updated:\*\*.*/**Updated:** $TODAY/" "$STATUS_FILE"
+else
+  printf '\n**Updated:** %s\n' "$TODAY" >> "$STATUS_FILE"
+fi
+
+if grep -q '^\*\*Branch:\*\*' "$STATUS_FILE"; then
+  sed -i "s/^\*\*Branch:\*\*.*/**Branch:** $BRANCH/" "$STATUS_FILE"
+else
+  printf '**Branch:** %s\n' "$BRANCH" >> "$STATUS_FILE"
+fi
+
+git add "$STATUS_FILE" 2>/dev/null || true
+exit 0
+"#;
+
+const MILESTONES_TEMPLATE: &str = "# Milestones
+
+## Upcoming
+- [ ] Define first milestone
+
+## Done
+";
+
+#[tauri::command]
+fn setup_project(path: String) -> Result<(), String> {
+    let project = std::path::Path::new(&path);
+
+    let milestones = project.join("MILESTONES.md");
+    if !milestones.exists() {
+        std::fs::write(&milestones, MILESTONES_TEMPLATE).map_err(|e| e.to_string())?;
+    }
+
+    let hooks_dir = project.join(".git").join("hooks");
+    if hooks_dir.exists() {
+        let hook_path = hooks_dir.join("pre-commit");
+        std::fs::write(&hook_path, PRE_COMMIT_HOOK).map_err(|e| e.to_string())?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&hook_path)
+                .map_err(|e| e.to_string())?
+                .permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&hook_path, perms).map_err(|e| e.to_string())?;
+        }
+    }
+
+    Ok(())
+}
+
 #[tauri::command]
 fn get_git_last_commit_date(path: String) -> Option<String> {
     let output = std::process::Command::new("git")
@@ -104,6 +165,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_system_uptime,
             path_exists,
+            setup_project,
             get_git_last_commit_date
         ])
         .run(tauri::generate_context!())

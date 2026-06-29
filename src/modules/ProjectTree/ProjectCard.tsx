@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import type { Project } from "../../types";
 import { BlockProgress } from "../../components/BlockProgress";
+import { readStatus } from "../../lib/readStatus";
 
 interface ProjectCardProps {
   project: Project;
@@ -28,6 +30,24 @@ function formatCommitDate(date: string | null): string {
 
 export function ProjectCard({ project, warningBadge }: ProjectCardProps) {
   const isActive = project.status === "active";
+  const [progress, setProgress] = useState(0);
+  const [hasStatusFile, setHasStatusFile] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStatus() {
+      const status = await readStatus(project.path);
+      if (cancelled) return;
+      setHasStatusFile(status !== null);
+      setProgress(status?.progress ?? 0);
+    }
+
+    void loadStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, [project.path]);
 
   return (
     <article
@@ -61,7 +81,10 @@ export function ProjectCard({ project, warningBadge }: ProjectCardProps) {
       </div>
 
       <div className="project-card-progress">
-        <BlockProgress value={project.progress} />
+        <BlockProgress value={progress} />
+        {!hasStatusFile && (
+          <span className="project-card-no-status">no status file</span>
+        )}
       </div>
 
       <div className="project-card-footer">
@@ -143,6 +166,15 @@ export function ProjectCard({ project, warningBadge }: ProjectCardProps) {
 
         .project-card-progress {
           margin-top: 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .project-card-no-status {
+          font-size: 10px;
+          color: var(--muted);
+          opacity: 0.65;
         }
 
         .project-card-footer {

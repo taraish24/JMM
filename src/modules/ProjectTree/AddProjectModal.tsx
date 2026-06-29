@@ -13,7 +13,6 @@ export function AddProjectModal({ onClose, onSubmit }: AddProjectModalProps) {
   const [name, setName] = useState("");
   const [path, setPath] = useState("");
   const [techStack, setTechStack] = useState("");
-  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<ProjectStatus>("active");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +67,7 @@ export function AddProjectModal({ onClose, onSubmit }: AddProjectModalProps) {
         name: name.trim(),
         path: path.trim(),
         tech_stack: tags,
-        progress: Math.max(0, Math.min(100, progress)),
+        progress: 0,
         status,
         last_commit_date: lastCommitDate,
       });
@@ -126,31 +125,17 @@ export function AddProjectModal({ onClose, onSubmit }: AddProjectModalProps) {
               />
             </div>
 
-            <div className="field-row">
-              <div className="field">
-                <label htmlFor="project-progress">progress (%)</label>
-                <input
-                  id="project-progress"
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={progress}
-                  onChange={(e) => setProgress(Number(e.target.value))}
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="project-status">status</label>
-                <select
-                  id="project-status"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as ProjectStatus)}
-                >
-                  <option value="active">active</option>
-                  <option value="shipped">shipped</option>
-                  <option value="paused">paused</option>
-                </select>
-              </div>
+            <div className="field">
+              <label htmlFor="project-status">status</label>
+              <select
+                id="project-status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+              >
+                <option value="active">active</option>
+                <option value="shipped">shipped</option>
+                <option value="paused">paused</option>
+              </select>
             </div>
           </div>
 

@@ -52,4 +52,6 @@ export interface ProjectBackupInfo {
   commitMessage: string | null;
   daysSinceCommit: number | null;
   status: BackupStatus;
+  daysSinceStatusUpdate: number | null;
+  hasStatusFile: boolean;
 }

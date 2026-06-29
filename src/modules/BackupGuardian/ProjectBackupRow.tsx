@@ -31,6 +31,9 @@ export function ProjectBackupRow({ info }: ProjectBackupRowProps) {
   const message = info.commitMessage ?? "no commit message";
   const daysLabel = formatDaysAgo(info.daysSinceCommit);
   const branchLabel = info.branch ?? "unknown";
+  const statusUpdateLabel = info.hasStatusFile
+    ? `updated ${formatDaysAgo(info.daysSinceStatusUpdate)}`
+    : "no status file";
 
   async function handleOpenTerminal() {
     setOpening(true);
@@ -60,6 +63,11 @@ export function ProjectBackupRow({ info }: ProjectBackupRowProps) {
       <div className="backup-row-detail">
         <span className="backup-indent" />
         last commit: &quot;{message}&quot; ({daysLabel})
+      </div>
+
+      <div className="backup-row-detail">
+        <span className="backup-indent" />
+        status: {statusUpdateLabel}
       </div>
 
       <div className="backup-row-footer">

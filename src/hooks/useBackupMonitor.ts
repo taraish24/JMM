@@ -7,6 +7,7 @@ import {
   notifyCriticalProjects,
 } from "../lib/backupStatus";
 import { NO_GIT_METADATA, readGitMetadata } from "../lib/gitMetadata";
+import { daysSinceUpdated, readStatus } from "../lib/readStatus";
 import { useAppStore } from "../store/appStore";
 
 const REFRESH_INTERVAL_MS = 30 * 60 * 1000; // 1800000ms — scan at most every 30 minutes
@@ -16,7 +17,10 @@ async function buildBackupInfo(project: Project): Promise<ProjectBackupInfo> {
   console.log("[BackupMonitor] scanning project:", project.name, project.path);
 
   try {
-    const metadata = await readGitMetadata(project.path);
+    const [metadata, statusInfo] = await Promise.all([
+      readGitMetadata(project.path),
+      readStatus(project.path),
+    ]);
     console.log(
       "[BackupMonitor] scanned project:",
       project.name,
@@ -31,6 +35,10 @@ async function buildBackupInfo(project: Project): Promise<ProjectBackupInfo> {
       commitMessage: metadata.commitMessage,
       daysSinceCommit: metadata.daysSinceCommit,
       status: metadata.status,
+      daysSinceStatusUpdate: statusInfo
+        ? daysSinceUpdated(statusInfo.updatedAt)
+        : null,
+      hasStatusFile: statusInfo !== null,
     };
   } catch (err) {
     console.log("[BackupMonitor] scan failed for project:", project.name, err);
@@ -42,6 +50,8 @@ async function buildBackupInfo(project: Project): Promise<ProjectBackupInfo> {
       commitMessage: NO_GIT_METADATA.commitMessage,
       daysSinceCommit: NO_GIT_METADATA.daysSinceCommit,
       status: NO_GIT_METADATA.status,
+      daysSinceStatusUpdate: null,
+      hasStatusFile: false,
     };
   }
 }

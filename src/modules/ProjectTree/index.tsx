@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { NewProject, Project } from "../../types";
 import { fetchProjects, createProject } from "../../store/projects";
+import { setupNewProject } from "../../lib/projectSetup";
 import { TerminalHeader } from "../../components/BlockProgress";
 import { ProjectCard } from "./ProjectCard";
 import { AddProjectModal } from "./AddProjectModal";
@@ -43,6 +44,11 @@ export function ProjectTree() {
 
   async function handleAddProject(project: NewProject) {
     await createProject(project);
+    try {
+      await setupNewProject(project.path);
+    } catch (err) {
+      console.warn("[ProjectTree] project setup failed:", err);
+    }
     await loadProjects();
   }
 
