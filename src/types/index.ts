@@ -1,4 +1,8 @@
-export type ModuleId = "project-tree" | "ai-launcher" | "backup-guardian";
+export type ModuleId =
+  | "project-tree"
+  | "ai-launcher"
+  | "backup-guardian"
+  | "income";
 
 export type ProjectStatus = "active" | "shipped" | "paused";
 
@@ -44,6 +48,21 @@ export interface NewProject {
 export interface AppContext {
   activeTool: PreferredTool | null;
   backupHealth: BackupHealth;
+}
+
+export interface IncomeEntry {
+  id: number;
+  project_id: number | null;
+  amount: number;
+  source: string;
+  received_at: string;
+}
+
+export interface NewIncomeEntry {
+  project_id: number | null;
+  amount: number;
+  source: string;
+  received_at: string;
 }
 
 export interface ProjectBackupInfo {

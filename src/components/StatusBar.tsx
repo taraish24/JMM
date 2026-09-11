@@ -1,11 +1,13 @@
 import type { PreferredTool } from "../types";
 import { formatCountdown, type Pomodoro } from "../hooks/usePomodoro";
+import { formatAmount } from "../store/income";
 
 interface StatusBarProps {
   activeTool: PreferredTool | null;
   backupHealth: "ok" | "warning" | "critical";
   backupSummary: string;
   pomodoro: Pomodoro;
+  incomeMonthTotal: number;
 }
 
 export function StatusBar({
@@ -13,6 +15,7 @@ export function StatusBar({
   backupHealth,
   backupSummary,
   pomodoro,
+  incomeMonthTotal,
 }: StatusBarProps) {
   const healthColor =
     backupHealth === "ok"
@@ -69,7 +72,13 @@ export function StatusBar({
 
       <div className="statusbar-section">
         <span className="statusbar-label">income</span>
-        <span className="statusbar-value muted">$---</span>
+        <span
+          className={`statusbar-value${incomeMonthTotal > 0 ? "" : " muted"}`}
+          style={incomeMonthTotal > 0 ? { color: "var(--accent)" } : undefined}
+          title="this month"
+        >
+          ${formatAmount(incomeMonthTotal)}
+        </span>
       </div>
 
       <style>{`

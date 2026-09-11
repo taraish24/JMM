@@ -9,6 +9,7 @@ const MODULES: { id: ModuleId; label: string; icon: string }[] = [
   { id: "project-tree", label: "projects", icon: "▸" },
   { id: "ai-launcher", label: "ai-launch", icon: "▸" },
   { id: "backup-guardian", label: "backup", icon: "▸" },
+  { id: "income", label: "income", icon: "▸" },
 ];
 
 export function Sidebar({ activeModule, onModuleChange }: SidebarProps) {

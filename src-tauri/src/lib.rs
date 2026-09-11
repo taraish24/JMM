@@ -159,6 +159,18 @@ pub fn run() {
             preferred_tool TEXT
         )",
         kind: MigrationKind::Up,
+    },
+    Migration {
+        version: 2,
+        description: "create income_entries table",
+        sql: "CREATE TABLE IF NOT EXISTS income_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER,
+            amount REAL NOT NULL,
+            source TEXT NOT NULL,
+            received_at TEXT NOT NULL
+        )",
+        kind: MigrationKind::Up,
     }];
 
     tauri::Builder::default()

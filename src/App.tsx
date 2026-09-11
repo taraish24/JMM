@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ModuleId } from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
@@ -6,16 +6,27 @@ import { StatusBar } from "./components/StatusBar";
 import { ProjectTree } from "./modules/ProjectTree";
 import { AILauncher } from "./modules/AILauncher";
 import { BackupGuardian } from "./modules/BackupGuardian";
+import { IncomeTracker } from "./modules/IncomeTracker";
 import { useAppStore } from "./store/appStore";
 import { useBackupMonitor } from "./hooks/useBackupMonitor";
 import { usePomodoro } from "./hooks/usePomodoro";
 
 function App() {
   const [activeModule, setActiveModule] = useState<ModuleId>("project-tree");
-  const { activeTool, backupHealth, backupSummary } = useAppStore();
+  const {
+    activeTool,
+    backupHealth,
+    backupSummary,
+    incomeMonthTotal,
+    refreshIncome,
+  } = useAppStore();
 
   useBackupMonitor();
   const pomodoro = usePomodoro();
+
+  useEffect(() => {
+    void refreshIncome();
+  }, [refreshIncome]);
 
   function renderModule() {
     switch (activeModule) {
@@ -25,6 +36,8 @@ function App() {
         return <AILauncher />;
       case "backup-guardian":
         return <BackupGuardian />;
+      case "income":
+        return <IncomeTracker />;
     }
   }
 
@@ -46,6 +59,7 @@ function App() {
           backupHealth={backupHealth}
           backupSummary={backupSummary}
           pomodoro={pomodoro}
+          incomeMonthTotal={incomeMonthTotal}
         />
       </div>
     </div>

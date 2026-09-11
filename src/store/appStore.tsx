@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import type { BackupHealth, PreferredTool, ProjectBackupInfo } from "../types";
+import { fetchMonthIncomeTotal } from "./income";
 
 interface AppStore {
   activeTool: PreferredTool | null;
@@ -24,6 +25,8 @@ interface AppStore {
   registerBackupScan: (
     fn: (options?: { manual?: boolean }) => Promise<void>,
   ) => void;
+  incomeMonthTotal: number;
+  refreshIncome: () => Promise<void>;
 }
 
 const AppStoreContext = createContext<AppStore | null>(null);
@@ -43,6 +46,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setBackupHealth(health);
     setBackupSummary(summary);
   }
+
+  const [incomeMonthTotal, setIncomeMonthTotal] = useState(0);
+
+  const refreshIncome = useCallback(async () => {
+    try {
+      setIncomeMonthTotal(await fetchMonthIncomeTotal());
+    } catch (err) {
+      console.log("[appStore] income refresh failed:", err);
+    }
+  }, []);
 
   const registerBackupScan = useCallback(
     (fn: (options?: { manual?: boolean }) => Promise<void>) => {
@@ -66,6 +79,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLastBackupScan,
       runBackupScan,
       registerBackupScan,
+      incomeMonthTotal,
+      refreshIncome,
     }),
     [
       activeTool,
@@ -76,6 +91,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       lastBackupScan,
       runBackupScan,
       registerBackupScan,
+      incomeMonthTotal,
+      refreshIncome,
     ],
   );
 
