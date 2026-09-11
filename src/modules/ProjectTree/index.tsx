@@ -5,6 +5,7 @@ import { setupNewProject } from "../../lib/projectSetup";
 import { TerminalHeader } from "../../components/BlockProgress";
 import { ProjectCard } from "./ProjectCard";
 import { AddProjectModal } from "./AddProjectModal";
+import { useAppStore } from "../../store/appStore";
 
 function daysSince(dateStr: string | null): number | null {
   if (!dateStr) return null;
@@ -25,6 +26,7 @@ export function ProjectTree() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { runBackupScan } = useAppStore();
 
   const loadProjects = useCallback(async () => {
     try {
@@ -50,6 +52,7 @@ export function ProjectTree() {
       console.warn("[ProjectTree] project setup failed:", err);
     }
     await loadProjects();
+    void runBackupScan?.({ manual: true });
   }
 
   const activeCount = projects.filter((p) => p.status === "active").length;

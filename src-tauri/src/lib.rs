@@ -117,7 +117,7 @@ fn setup_project(path: String) -> Result<(), String> {
 #[tauri::command]
 fn get_git_last_commit_date(path: String) -> Option<String> {
     let output = std::process::Command::new("git")
-        .args(["-C", &path, "log", "-1", "--format=%ci"])
+        .args(["-C", &path, "log", "-1", "--format=%cI"])
         .output()
         .ok()?;
 
