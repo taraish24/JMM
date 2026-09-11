@@ -28,6 +28,7 @@
         { "path": "/home/**/.git" },
         { "path": "/home/**/.git/**" },
         { "path": "/media/**" },
+        { "path": "/run/media/**" },
         { "path": "/mnt/**" },
         { "path": "/opt/**" },
         { "path": "/srv/**" }

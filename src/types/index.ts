@@ -8,6 +8,8 @@ export type BackupStatus = "synced" | "stale" | "critical" | "unknown";
 
 export type BackupHealth = "ok" | "warning" | "critical";
 
+export type PomodoroPhase = "work" | "break";
+
 export interface Project {
   id: number;
   name: string;

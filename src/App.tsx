@@ -8,12 +8,14 @@ import { AILauncher } from "./modules/AILauncher";
 import { BackupGuardian } from "./modules/BackupGuardian";
 import { useAppStore } from "./store/appStore";
 import { useBackupMonitor } from "./hooks/useBackupMonitor";
+import { usePomodoro } from "./hooks/usePomodoro";
 
 function App() {
   const [activeModule, setActiveModule] = useState<ModuleId>("project-tree");
   const { activeTool, backupHealth, backupSummary } = useAppStore();
 
   useBackupMonitor();
+  const pomodoro = usePomodoro();
 
   function renderModule() {
     switch (activeModule) {
@@ -43,6 +45,7 @@ function App() {
           activeTool={activeTool}
           backupHealth={backupHealth}
           backupSummary={backupSummary}
+          pomodoro={pomodoro}
         />
       </div>
     </div>

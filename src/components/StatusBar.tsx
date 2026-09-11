@@ -1,15 +1,18 @@
 import type { PreferredTool } from "../types";
+import { formatCountdown, type Pomodoro } from "../hooks/usePomodoro";
 
 interface StatusBarProps {
   activeTool: PreferredTool | null;
   backupHealth: "ok" | "warning" | "critical";
   backupSummary: string;
+  pomodoro: Pomodoro;
 }
 
 export function StatusBar({
   activeTool,
   backupHealth,
   backupSummary,
+  pomodoro,
 }: StatusBarProps) {
   const healthColor =
     backupHealth === "ok"
@@ -31,7 +34,26 @@ export function StatusBar({
 
       <div className="statusbar-section">
         <span className="statusbar-label">pomodoro</span>
-        <span className="statusbar-value muted">--:--</span>
+        <span className="statusbar-value">{formatCountdown(pomodoro.remaining)}</span>
+        <span
+          className="statusbar-phase"
+          style={{
+            color: pomodoro.phase === "work" ? "var(--accent)" : "#e6a800",
+          }}
+        >
+          {pomodoro.phase}
+        </span>
+        <button type="button" className="statusbar-btn" onClick={pomodoro.toggle}>
+          {pomodoro.running ? "pause" : "start"}
+        </button>
+        <button type="button" className="statusbar-btn" onClick={pomodoro.reset}>
+          reset
+        </button>
+        {pomodoro.completedSessions > 0 && (
+          <span className="statusbar-value muted">
+            ×{pomodoro.completedSessions}
+          </span>
+        )}
       </div>
 
       <span className="statusbar-divider">|</span>
@@ -83,6 +105,26 @@ export function StatusBar({
 
         .statusbar-divider {
           color: var(--border);
+        }
+
+        .statusbar-phase {
+          font-size: 10px;
+          text-transform: uppercase;
+        }
+
+        .statusbar-btn {
+          background: none;
+          border: none;
+          padding: 0;
+          font-family: inherit;
+          font-size: 10px;
+          color: var(--muted);
+          cursor: pointer;
+          text-decoration: underline;
+        }
+
+        .statusbar-btn:hover {
+          color: var(--text);
         }
       `}</style>
     </footer>
