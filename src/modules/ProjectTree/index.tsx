@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import type { NewProject, Project } from "../../types";
-import { fetchProjects, createProject } from "../../store/projects";
+import {
+  fetchProjects,
+  createProject,
+  deleteProject,
+} from "../../store/projects";
 import { setupNewProject } from "../../lib/projectSetup";
 import { TerminalHeader } from "../../components/BlockProgress";
 import { ProjectCard } from "./ProjectCard";
@@ -51,6 +55,12 @@ export function ProjectTree() {
     } catch (err) {
       console.warn("[ProjectTree] project setup failed:", err);
     }
+    await loadProjects();
+    void runBackupScan?.({ manual: true });
+  }
+
+  async function handleRemoveProject(id: number) {
+    await deleteProject(id);
     await loadProjects();
     void runBackupScan?.({ manual: true });
   }
@@ -111,6 +121,7 @@ export function ProjectTree() {
               key={project.id}
               project={project}
               warningBadge={hasCommitWarning(project)}
+              onRemove={handleRemoveProject}
             />
           ))}
         </div>

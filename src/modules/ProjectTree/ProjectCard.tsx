@@ -6,6 +6,7 @@ import { readStatus } from "../../lib/readStatus";
 interface ProjectCardProps {
   project: Project;
   warningBadge?: boolean;
+  onRemove: (id: number) => Promise<void>;
 }
 
 const STATUS_LABELS: Record<Project["status"], string> = {
@@ -28,10 +29,16 @@ function formatCommitDate(date: string | null): string {
   }
 }
 
-export function ProjectCard({ project, warningBadge }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  warningBadge,
+  onRemove,
+}: ProjectCardProps) {
   const isActive = project.status === "active";
   const [progress, setProgress] = useState(0);
   const [hasStatusFile, setHasStatusFile] = useState(false);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,6 +73,46 @@ export function ProjectCard({ project, warningBadge }: ProjectCardProps) {
         >
           [{STATUS_LABELS[project.status]}]
         </span>
+      </div>
+
+      <div className="project-card-remove">
+        {confirmingRemove ? (
+          <span className="project-card-confirm">
+            remove from jmm? folder stays on disk.
+            <button
+              type="button"
+              className="inline-btn inline-btn--danger"
+              disabled={removing}
+              onClick={async () => {
+                setRemoving(true);
+                try {
+                  await onRemove(project.id);
+                } finally {
+                  setRemoving(false);
+                  setConfirmingRemove(false);
+                }
+              }}
+            >
+              {removing ? "removing..." : "y"}
+            </button>
+            <button
+              type="button"
+              className="inline-btn"
+              disabled={removing}
+              onClick={() => setConfirmingRemove(false)}
+            >
+              n
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="inline-btn"
+            onClick={() => setConfirmingRemove(true)}
+          >
+            rm
+          </button>
+        )}
       </div>
 
       <div className="tag-list">
@@ -162,6 +209,23 @@ export function ProjectCard({ project, warningBadge }: ProjectCardProps) {
         .project-card-status--shipped,
         .project-card-status--paused {
           color: var(--muted);
+        }
+
+        .project-card-remove {
+          font-size: 10px;
+          min-height: 14px;
+          margin-top: -6px;
+        }
+
+        .project-card-confirm {
+          color: var(--muted);
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .project-card .inline-btn--danger {
+          color: #ff4444;
         }
 
         .project-card-progress {

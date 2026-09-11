@@ -53,6 +53,8 @@ fn path_exists(path: String) -> bool {
     std::path::Path::new(&path).exists()
 }
 
+const HOOK_MARKER: &str = "JMM pre-commit hook";
+
 const PRE_COMMIT_HOOK: &str = r#"#!/bin/sh
 # JMM pre-commit hook — refreshes STATUS.md metadata before each commit
 
@@ -98,16 +100,24 @@ fn setup_project(path: String) -> Result<(), String> {
     let hooks_dir = project.join(".git").join("hooks");
     if hooks_dir.exists() {
         let hook_path = hooks_dir.join("pre-commit");
-        std::fs::write(&hook_path, PRE_COMMIT_HOOK).map_err(|e| e.to_string())?;
 
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = std::fs::metadata(&hook_path)
-                .map_err(|e| e.to_string())?
-                .permissions();
-            perms.set_mode(0o755);
-            std::fs::set_permissions(&hook_path, perms).map_err(|e| e.to_string())?;
+        // Never overwrite a hook we didn't write — only install ours or refresh it.
+        let is_foreign_hook = std::fs::read_to_string(&hook_path)
+            .map(|existing| !existing.contains(HOOK_MARKER))
+            .unwrap_or(false);
+
+        if !is_foreign_hook {
+            std::fs::write(&hook_path, PRE_COMMIT_HOOK).map_err(|e| e.to_string())?;
+
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mut perms = std::fs::metadata(&hook_path)
+                    .map_err(|e| e.to_string())?
+                    .permissions();
+                perms.set_mode(0o755);
+                std::fs::set_permissions(&hook_path, perms).map_err(|e| e.to_string())?;
+            }
         }
     }
 
