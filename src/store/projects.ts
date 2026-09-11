@@ -12,6 +12,18 @@ async function getDb(): Promise<Database> {
   return dbPromise;
 }
 
+// The sql plugin rejects with a plain string, so `instanceof Error` misses it.
+export function describeProjectWriteError(
+  err: unknown,
+  fallback: string,
+): string {
+  const message = err instanceof Error ? err.message : String(err ?? "");
+  if (message.includes("UNIQUE") && message.includes("path")) {
+    return "Another project already uses that path";
+  }
+  return message || fallback;
+}
+
 function rowToProject(row: ProjectRow): Project {
   let tech_stack: string[] = [];
   try {
@@ -70,6 +82,7 @@ export async function updateProject(
     Pick<
       Project,
       | "name"
+      | "path"
       | "tech_stack"
       | "progress"
       | "status"
@@ -86,6 +99,10 @@ export async function updateProject(
   if (updates.name !== undefined) {
     fields.push(`name = $${paramIndex++}`);
     values.push(updates.name);
+  }
+  if (updates.path !== undefined) {
+    fields.push(`path = $${paramIndex++}`);
+    values.push(updates.path);
   }
   if (updates.tech_stack !== undefined) {
     fields.push(`tech_stack = $${paramIndex++}`);

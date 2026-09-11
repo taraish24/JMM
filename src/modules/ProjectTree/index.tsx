@@ -4,6 +4,7 @@ import {
   fetchProjects,
   createProject,
   deleteProject,
+  updateProject,
 } from "../../store/projects";
 import { setupNewProject } from "../../lib/projectSetup";
 import { TerminalHeader } from "../../components/BlockProgress";
@@ -55,6 +56,12 @@ export function ProjectTree() {
     } catch (err) {
       console.warn("[ProjectTree] project setup failed:", err);
     }
+    await loadProjects();
+    void runBackupScan?.({ manual: true });
+  }
+
+  async function handleUpdateProject(id: number, updates: Partial<Project>) {
+    await updateProject(id, updates);
     await loadProjects();
     void runBackupScan?.({ manual: true });
   }
@@ -122,6 +129,7 @@ export function ProjectTree() {
               project={project}
               warningBadge={hasCommitWarning(project)}
               onRemove={handleRemoveProject}
+              onUpdate={handleUpdateProject}
             />
           ))}
         </div>

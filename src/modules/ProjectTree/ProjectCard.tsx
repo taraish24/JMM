@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import type { Project } from "../../types";
+import type { Project, ProjectStatus } from "../../types";
 import { BlockProgress } from "../../components/BlockProgress";
 import { readStatus } from "../../lib/readStatus";
+import { describeProjectWriteError } from "../../store/projects";
 
 interface ProjectCardProps {
   project: Project;
   warningBadge?: boolean;
   onRemove: (id: number) => Promise<void>;
+  onUpdate: (id: number, updates: Partial<Project>) => Promise<void>;
 }
 
 const STATUS_LABELS: Record<Project["status"], string> = {
@@ -17,28 +19,74 @@ const STATUS_LABELS: Record<Project["status"], string> = {
 
 function formatCommitDate(date: string | null): string {
   if (!date) return "no commits";
-  try {
-    const d = new Date(date);
-    return d.toLocaleDateString("en-GB", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return date;
-  }
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return "unknown";
+  return parsed.toLocaleDateString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function ProjectCard({
   project,
   warningBadge,
   onRemove,
+  onUpdate,
 }: ProjectCardProps) {
   const isActive = project.status === "active";
   const [progress, setProgress] = useState(0);
   const [hasStatusFile, setHasStatusFile] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [removing, setRemoving] = useState(false);
+
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState(project.name);
+  const [draftPath, setDraftPath] = useState(project.path);
+  const [draftStack, setDraftStack] = useState(project.tech_stack.join(", "));
+  const [draftStatus, setDraftStatus] = useState<ProjectStatus>(project.status);
+
+  function openEditor() {
+    setDraftName(project.name);
+    setDraftPath(project.path);
+    setDraftStack(project.tech_stack.join(", "));
+    setDraftStatus(project.status);
+    setEditError(null);
+    setEditing(true);
+  }
+
+  async function saveEdits(e: React.FormEvent) {
+    e.preventDefault();
+    if (!draftName.trim()) {
+      setEditError("Name is required");
+      return;
+    }
+    if (!draftPath.trim()) {
+      setEditError("Path is required");
+      return;
+    }
+
+    setSaving(true);
+    setEditError(null);
+    try {
+      await onUpdate(project.id, {
+        name: draftName.trim(),
+        path: draftPath.trim(),
+        tech_stack: draftStack
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        status: draftStatus,
+      });
+      setEditing(false);
+    } catch (err) {
+      setEditError(describeProjectWriteError(err, "Failed to save changes"));
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +123,66 @@ export function ProjectCard({
         </span>
       </div>
 
+      {editing && (
+        <form className="project-card-edit" onSubmit={saveEdits}>
+          <label className="project-card-edit-label">name</label>
+          <input
+            className="project-card-edit-input"
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            autoFocus
+          />
+
+          <label className="project-card-edit-label">path</label>
+          <input
+            className="project-card-edit-input"
+            value={draftPath}
+            onChange={(e) => setDraftPath(e.target.value)}
+          />
+
+          <label className="project-card-edit-label">tech stack</label>
+          <input
+            className="project-card-edit-input"
+            value={draftStack}
+            onChange={(e) => setDraftStack(e.target.value)}
+            placeholder="react, typescript"
+          />
+
+          <label className="project-card-edit-label">status</label>
+          <select
+            className="project-card-edit-input"
+            value={draftStatus}
+            onChange={(e) => setDraftStatus(e.target.value as ProjectStatus)}
+          >
+            <option value="active">active</option>
+            <option value="shipped">shipped</option>
+            <option value="paused">paused</option>
+          </select>
+
+          {editError && <p className="project-card-edit-error">{editError}</p>}
+
+          <div className="project-card-edit-actions">
+            <button type="submit" className="inline-btn" disabled={saving}>
+              {saving ? "saving..." : "save"}
+            </button>
+            <button
+              type="button"
+              className="inline-btn"
+              disabled={saving}
+              onClick={() => setEditing(false)}
+            >
+              cancel
+            </button>
+          </div>
+        </form>
+      )}
+
       <div className="project-card-remove">
+        {!editing && !confirmingRemove && (
+          <button type="button" className="inline-btn" onClick={openEditor}>
+            edit
+          </button>
+        )}
         {confirmingRemove ? (
           <span className="project-card-confirm">
             remove from jmm? folder stays on disk.
@@ -105,13 +212,15 @@ export function ProjectCard({
             </button>
           </span>
         ) : (
-          <button
-            type="button"
-            className="inline-btn"
-            onClick={() => setConfirmingRemove(true)}
-          >
-            rm
-          </button>
+          !editing && (
+            <button
+              type="button"
+              className="inline-btn"
+              onClick={() => setConfirmingRemove(true)}
+            >
+              rm
+            </button>
+          )
         )}
       </div>
 
@@ -215,6 +324,48 @@ export function ProjectCard({
           font-size: 10px;
           min-height: 14px;
           margin-top: -6px;
+          display: flex;
+          gap: 10px;
+          align-items: center;
+        }
+
+        .project-card-edit {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-top: -4px;
+        }
+
+        .project-card-edit-label {
+          font-size: 9px;
+          color: var(--muted);
+          text-transform: uppercase;
+        }
+
+        .project-card-edit-input {
+          background: var(--bg);
+          border: 1px solid var(--border);
+          color: var(--text);
+          font-family: inherit;
+          font-size: 11px;
+          padding: 5px 6px;
+        }
+
+        .project-card-edit-input:focus {
+          outline: none;
+          border-color: var(--accent);
+        }
+
+        .project-card-edit-error {
+          color: #ff4444;
+          font-size: 10px;
+        }
+
+        .project-card-edit-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 4px;
+          font-size: 10px;
         }
 
         .project-card-confirm {

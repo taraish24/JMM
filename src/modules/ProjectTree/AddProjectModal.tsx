@@ -2,6 +2,7 @@ import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import type { NewProject, ProjectStatus } from "../../types";
+import { describeProjectWriteError } from "../../store/projects";
 import { TerminalHeader } from "../../components/BlockProgress";
 
 interface AddProjectModalProps {
@@ -74,7 +75,7 @@ export function AddProjectModal({ onClose, onSubmit }: AddProjectModalProps) {
 
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add project");
+      setError(describeProjectWriteError(err, "Failed to add project"));
     } finally {
       setSubmitting(false);
     }
