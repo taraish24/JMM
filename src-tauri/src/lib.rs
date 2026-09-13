@@ -101,9 +101,14 @@ fn setup_project(path: String) -> Result<(), String> {
     if hooks_dir.exists() {
         let hook_path = hooks_dir.join("pre-commit");
 
-        // Never overwrite a hook we didn't write — only install ours or refresh it.
-        let is_foreign_hook = std::fs::read_to_string(&hook_path)
-            .map(|existing| !existing.contains(HOOK_MARKER))
+        // Never overwrite a hook we didn't write — only install ours or refresh
+        // it. Compare bytes: a non-UTF-8 hook must still count as foreign.
+        let is_foreign_hook = std::fs::read(&hook_path)
+            .map(|existing| {
+                !existing
+                    .windows(HOOK_MARKER.len())
+                    .any(|window| window == HOOK_MARKER.as_bytes())
+            })
             .unwrap_or(false);
 
         if !is_foreign_hook {

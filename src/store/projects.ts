@@ -1,16 +1,5 @@
-import Database from "@tauri-apps/plugin-sql";
 import type { NewProject, Project, ProjectRow } from "../types";
-
-const DB_PATH = "sqlite:jmm.db";
-
-let dbPromise: Promise<Database> | null = null;
-
-async function getDb(): Promise<Database> {
-  if (!dbPromise) {
-    dbPromise = Database.load(DB_PATH);
-  }
-  return dbPromise;
-}
+import { getDb } from "./db";
 
 // The sql plugin rejects with a plain string, so `instanceof Error` misses it.
 export function describeProjectWriteError(

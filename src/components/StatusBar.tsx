@@ -1,12 +1,11 @@
 import type { PreferredTool } from "../types";
-import { formatCountdown, type Pomodoro } from "../hooks/usePomodoro";
+import { formatCountdown, usePomodoro } from "../hooks/usePomodoro";
 import { formatAmount } from "../store/income";
 
 interface StatusBarProps {
   activeTool: PreferredTool | null;
   backupHealth: "ok" | "warning" | "critical";
   backupSummary: string;
-  pomodoro: Pomodoro;
   incomeMonthTotal: number;
 }
 
@@ -14,9 +13,10 @@ export function StatusBar({
   activeTool,
   backupHealth,
   backupSummary,
-  pomodoro,
   incomeMonthTotal,
 }: StatusBarProps) {
+  // Owned here so the per-second tick re-renders only the status bar.
+  const pomodoro = usePomodoro();
   const healthColor =
     backupHealth === "ok"
       ? "var(--accent)"

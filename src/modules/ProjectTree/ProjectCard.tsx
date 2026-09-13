@@ -192,11 +192,16 @@ export function ProjectCard({
               disabled={removing}
               onClick={async () => {
                 setRemoving(true);
+                setEditError(null);
                 try {
                   await onRemove(project.id);
+                  setConfirmingRemove(false);
+                } catch (err) {
+                  setEditError(
+                    describeProjectWriteError(err, "Failed to remove project"),
+                  );
                 } finally {
                   setRemoving(false);
-                  setConfirmingRemove(false);
                 }
               }}
             >
@@ -223,6 +228,10 @@ export function ProjectCard({
           )
         )}
       </div>
+
+      {!editing && editError && (
+        <p className="project-card-edit-error">{editError}</p>
+      )}
 
       <div className="tag-list">
         {project.tech_stack.length > 0 ? (

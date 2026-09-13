@@ -9,7 +9,6 @@ import { BackupGuardian } from "./modules/BackupGuardian";
 import { IncomeTracker } from "./modules/IncomeTracker";
 import { useAppStore } from "./store/appStore";
 import { useBackupMonitor } from "./hooks/useBackupMonitor";
-import { usePomodoro } from "./hooks/usePomodoro";
 
 function App() {
   const [activeModule, setActiveModule] = useState<ModuleId>("project-tree");
@@ -22,7 +21,6 @@ function App() {
   } = useAppStore();
 
   useBackupMonitor();
-  const pomodoro = usePomodoro();
 
   useEffect(() => {
     void refreshIncome();
@@ -58,7 +56,6 @@ function App() {
           activeTool={activeTool}
           backupHealth={backupHealth}
           backupSummary={backupSummary}
-          pomodoro={pomodoro}
           incomeMonthTotal={incomeMonthTotal}
         />
       </div>

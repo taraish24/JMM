@@ -79,9 +79,14 @@ export function IncomeTracker() {
   }
 
   async function handleDelete(id: number) {
-    await deleteIncomeEntry(id);
-    await load();
-    await refreshIncome();
+    setError(null);
+    try {
+      await deleteIncomeEntry(id);
+      await load();
+      await refreshIncome();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove entry");
+    }
   }
 
   const monthPrefix = currentMonthPrefix();

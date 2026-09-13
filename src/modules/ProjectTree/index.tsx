@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import type { NewProject, Project } from "../../types";
 import {
   fetchProjects,
@@ -61,6 +62,21 @@ export function ProjectTree() {
   }
 
   async function handleUpdateProject(id: number, updates: Partial<Project>) {
+    const previous = projects.find((project) => project.id === id);
+    const movedTo =
+      updates.path && updates.path !== previous?.path ? updates.path : null;
+
+    // The stored commit date describes the old directory once the path moves.
+    if (movedTo) {
+      updates = {
+        ...updates,
+        last_commit_date: await invoke<string | null>(
+          "get_git_last_commit_date",
+          { path: movedTo },
+        ).catch(() => null),
+      };
+    }
+
     await updateProject(id, updates);
     await loadProjects();
     void runBackupScan?.({ manual: true });

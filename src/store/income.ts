@@ -1,16 +1,5 @@
-import Database from "@tauri-apps/plugin-sql";
 import type { IncomeEntry, NewIncomeEntry } from "../types";
-
-const DB_PATH = "sqlite:jmm.db";
-
-let dbPromise: Promise<Database> | null = null;
-
-async function getDb(): Promise<Database> {
-  if (!dbPromise) {
-    dbPromise = Database.load(DB_PATH);
-  }
-  return dbPromise;
-}
+import { getDb } from "./db";
 
 export function currentMonthPrefix(date = new Date()): string {
   const year = date.getFullYear();
